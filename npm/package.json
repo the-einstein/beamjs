@@ -1,6 +1,6 @@
 {
   "name": "beamjs-runtime",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "JavaScript/TypeScript runtime built on the BEAM VM (Elixir/Erlang) with QuickJS. Erlang/OTP superpowers for JS: lightweight processes, supervision trees, GenServer, pattern matching, pipe operator.",
   "author": "the-einstein",
   "license": "MIT",
@@ -38,7 +38,8 @@
   "files": [
     "bin/",
     "install.js",
-    "release.tar.gz"
+    "release.tar.gz",
+    "README.md"
   ],
   "os": [
     "linux"
