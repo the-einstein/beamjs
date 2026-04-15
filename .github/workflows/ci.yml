@@ -35,11 +35,15 @@ jobs:
           cd apps/beamjs_nif/c_src
           make
 
+      - name: Set up MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Build NIF (Windows)
         if: runner.os == 'Windows'
-        shell: bash
+        shell: cmd
         run: |
-          cd apps/beamjs_nif/c_src
+          cd apps\beamjs_nif\c_src
           make
 
       - name: Compile
