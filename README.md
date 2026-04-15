@@ -1,5 +1,8 @@
 # BeamJS
 
+[![npm version](https://img.shields.io/npm/v/beamjs-runtime.svg)](https://www.npmjs.com/package/beamjs-runtime)
+[![GitHub](https://img.shields.io/github/license/the-einstein/beamjs)](https://github.com/the-einstein/beamjs)
+
 A standalone JavaScript/TypeScript runtime built on the **BEAM VM** (Elixir/Erlang) with **QuickJS** as the embedded JS engine. No Node.js. No V8. Just the BEAM and a tiny, ES2023-compliant JS engine working together.
 
 BeamJS gives JavaScript developers real Erlang/OTP superpowers: lightweight processes, supervision trees, GenServer, pattern matching, and pipe operators -- all backed by the battle-tested BEAM virtual machine that powers WhatsApp, Discord, and countless telecom systems.
@@ -45,18 +48,37 @@ BeamJS gives JavaScript developers real Erlang/OTP superpowers: lightweight proc
 
 3. **JS Standard Library** -- 9 built-in modules: `beamjs:process`, `beamjs:gen_server`, `beamjs:supervisor`, `beamjs:match`, `beamjs:pipe`, `beamjs:task`, `beamjs:agent`, `beamjs:timer`, `beamjs:test`. These call host functions injected by the NIF layer to bridge into BEAM primitives.
 
-## Prerequisites
+## Install
 
-- **Elixir** 1.12+
-- **Erlang/OTP** 24+
-- **GCC** (or any C99 compiler)
-- **GNU Make**
+### via npm (recommended)
 
-## Quick Start
+Zero dependencies. The npm package bundles the entire BEAM runtime + QuickJS engine as a standalone binary (~5.9MB).
 
 ```bash
-# Clone and build
-git clone <repo-url> beamjs
+npm install -g beamjs-runtime
+```
+
+That's it. Now you can use `beamjs` from anywhere:
+
+```bash
+beamjs version
+# BeamJS v0.1.0 (QuickJS on BEAM/OTP 24)
+
+beamjs run app.js
+beamjs new myapp
+beamjs shell
+```
+
+> **Note:** The npm package currently ships a Linux x64 binary. macOS and Windows/WSL support coming soon via platform-specific packages.
+
+### From source
+
+If you want to build from source or contribute:
+
+**Prerequisites:** Elixir 1.12+, Erlang/OTP 24+, GCC, Make
+
+```bash
+git clone https://github.com/the-einstein/beamjs.git
 cd beamjs
 mix deps.get
 cd apps/beamjs_nif/c_src && make && cd ../../..
@@ -64,26 +86,22 @@ mix compile
 
 # Run a JavaScript file
 ./beamjs run test/fixtures/hello.js
-# Output:
-#   Hello from BeamJS!
-#   1 + 2 = 3
-#   Doubled: [2,4,6,8,10]
-#   Runtime: {"name":"BeamJS","version":"0.1.0","runtime":"BEAM + QuickJS"}
 
 # Start the interactive REPL
 ./beamjs shell
-# beamjs(1)> 1 + 2
-# => 3
-# beamjs(2)> [1,2,3].map(function(n) { return n * n; })
-# => [1, 4, 9]
 
 # Create a new project
 ./beamjs new myapp
-cd myapp
-../beamjs run src/main.js
 
 # Run all Elixir + NIF tests
 mix test
+```
+
+### Build the npm package locally
+
+```bash
+bash scripts/build-npm.sh
+npm install -g npm/beamjs-runtime-0.1.0.tgz
 ```
 
 ## Features
@@ -261,7 +279,7 @@ run();  // Executes all tests and prints results
 ```
 
 ```bash
-./beamjs test
+beamjs test
 ```
 
 ### TypeScript Support
@@ -337,6 +355,17 @@ beamjs/
 │       │   └── repl.ex                  # Interactive REPL
 │       └── test/beamjs_cli_test.exs     # 2 CLI tests
 │
+├── npm/                                 # npm package for distribution
+│   ├── package.json                     # beamjs-runtime on npmjs.com
+│   ├── bin/beamjs                       # Node.js shim (exec's release binary)
+│   └── install.js                       # postinstall: extracts release tarball
+│
+├── scripts/
+│   └── build-npm.sh                     # Build release + package for npm
+│
+├── rel/
+│   └── env.sh.eex                       # Release environment config
+│
 ├── test/fixtures/                       # JS test files
 │   ├── hello.js                         # Basic hello world
 │   ├── pattern_match.js                 # Pattern matching tests
@@ -388,22 +417,24 @@ Processes cannot share JS objects. `spawn(fn)` serializes the function via `fn.t
 
 ## Current Status
 
-### Working (Phase 1-2)
-- JS evaluation on BEAM via QuickJS NIF
-- `console.log` / `console.error` (direct stdout/stderr, no host round-trip)
-- Full ES2023 JavaScript support (QuickJS)
-- Process spawning and message passing
-- GenServer behavior bridge
-- Supervisor bridge with strategies
-- Pattern matching (pure JS)
-- Pipeline operator (pure JS)
-- Task and Agent abstractions
-- CLI: `run`, `shell` (REPL), `new`, `test`, `version`
-- TypeScript type stripping
-- Module resolution for `beamjs:*` imports
-- 28 passing Elixir tests + 4 JS fixture tests
+### Working
+- **npm distribution** -- `npm install -g beamjs-runtime` (standalone 5.9MB binary, zero dependencies)
+- **JS evaluation on BEAM** via QuickJS NIF with dirty CPU schedulers
+- **Full ES2023 JavaScript support** (QuickJS 2024-01-13)
+- **`console.log` / `console.error`** (direct stdout/stderr, no host round-trip)
+- **Process spawning and message passing** via BEAM actors
+- **GenServer behavior bridge** -- JS classes delegating to OTP GenServer
+- **Supervisor bridge** -- one_for_one, one_for_all, rest_for_one strategies
+- **Pattern matching** -- wildcards, bindings, guards, nested object/array matching
+- **Pipeline operator** -- then/tap/when/value chaining
+- **Task and Agent** abstractions
+- **CLI** -- `run`, `shell` (REPL), `new` (scaffolding), `test`, `version`
+- **TypeScript** -- lightweight type stripping
+- **Module resolution** for `beamjs:*` imports
+- **28 passing Elixir tests** + **4 JS fixture tests** (12 subtests)
 
-### Planned (Phase 3-4)
+### Planned
+- Cross-platform npm packages (macOS arm64/x64, Windows via WSL)
 - ES module imports for user files (`import`/`export`)
 - Full TypeScript compiler (via QuickJS-hosted tsc)
 - Distribution (cross-node messaging)
@@ -411,7 +442,6 @@ Processes cannot share JS objects. `spawn(fn)` serializes the function via `fn.t
 - Port-based safety backend (alternative to NIF)
 - GenStage producer/consumer patterns
 - Package manager / dependency resolution
-- Mix release packaging
 
 ## Tests
 
@@ -426,7 +456,7 @@ mix test apps/beamjs_nif
 mix test apps/beamjs_core
 
 # Run JS fixture tests manually
-./beamjs run test/fixtures/comprehensive.js
+beamjs run test/fixtures/comprehensive.js
 ```
 
 ## Key Design Decisions
