@@ -36,7 +36,12 @@ defmodule BeamjsNif.MixProject do
   defp compile_nif(_) do
     c_src = Path.join(__DIR__, "c_src")
     if File.dir?(c_src) do
-      {result, exit_code} = System.cmd("make", [], cd: c_src, stderr_to_stdout: true)
+      {cmd, args} = case :os.type() do
+        {:win32, _} -> {"cmd", ["/c", "call build_win.bat"]}
+        _ -> {"make", []}
+      end
+
+      {result, exit_code} = System.cmd(cmd, args, cd: c_src, stderr_to_stdout: true)
       IO.puts(result)
       if exit_code != 0 do
         Mix.raise("NIF compilation failed")
