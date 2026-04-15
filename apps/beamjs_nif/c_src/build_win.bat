@@ -1,6 +1,7 @@
 @echo off
-REM BeamJS NIF build script for Windows (MSVC)
-REM Run from a Visual Studio Developer Command Prompt or with msvc-dev-cmd in CI
+REM BeamJS NIF build script for Windows
+REM Uses clang-cl (LLVM/Clang with MSVC compatibility) for QuickJS
+REM and MSVC cl for the NIF bridge
 
 setlocal enabledelayedexpansion
 
@@ -15,43 +16,35 @@ set QUICKJS_DIR=quickjs
 echo Building BeamJS NIF for Windows...
 echo ERTS_INCLUDE=%ERTS_INCLUDE%
 
-REM Compile NIF sources (C11 mode)
-set NIF_CFLAGS=/O2 /nologo /W3 /wd4244 /wd4267 /wd4996 /wd4146 /wd4334 /wd4018 /wd4101 ^
-    /I"%ERTS_INCLUDE%" /I"%EI_INCLUDE%" /I"%QUICKJS_DIR%" ^
-    /D_GNU_SOURCE /DCONFIG_VERSION="2024-01-13" ^
-    /DCONFIG_BIGNUM /D_CRT_SECURE_NO_WARNINGS ^
-    /std:c11
+REM Use clang-cl for everything (supports GCC __attribute__ + MSVC ABI)
+set CC=clang-cl
+set CFLAGS=-O2 -fPIC -Wno-unused-parameter -Wno-sign-compare -Wno-implicit-int-float-conversion ^
+    -I"%ERTS_INCLUDE%" -I"%EI_INCLUDE%" -I"%QUICKJS_DIR%" ^
+    -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-01-13\" ^
+    -DCONFIG_BIGNUM -D_CRT_SECURE_NO_WARNINGS
 
-echo Compiling NIF sources...
-for %%f in (beamjs_nif.c term_convert.c host_functions.c module_loader.c) do (
-    echo   %%f
-    cl /c %NIF_CFLAGS% %%f
-    if !ERRORLEVEL! neq 0 goto :fail
-)
-
-REM Compile QuickJS sources
-REM QuickJS uses GCC-specific __attribute__ - define it away for MSVC
-set QJS_CFLAGS=/O2 /nologo /W3 /wd4244 /wd4267 /wd4996 /wd4146 /wd4334 /wd4018 /wd4101 /wd4473 /wd4090 /wd4028 /wd4113 /wd4098 /wd4477 ^
-    /I"%QUICKJS_DIR%" ^
-    /D_GNU_SOURCE /DCONFIG_VERSION="2024-01-13" ^
-    /DCONFIG_BIGNUM /D_CRT_SECURE_NO_WARNINGS ^
-    /D"__attribute__(x)=" /D"inline=__inline" ^
-    /std:c11
+if not exist "..\priv" mkdir "..\priv"
 
 echo Compiling QuickJS sources...
 for %%f in (%QUICKJS_DIR%\quickjs.c %QUICKJS_DIR%\cutils.c %QUICKJS_DIR%\libbf.c %QUICKJS_DIR%\libregexp.c %QUICKJS_DIR%\libunicode.c) do (
     echo   %%f
-    cl /c %QJS_CFLAGS% %%f
+    %CC% /c %CFLAGS% -Wno-missing-field-initializers %%f
     if !ERRORLEVEL! neq 0 goto :fail
 )
 
-REM Link into DLL
-if not exist "..\priv" mkdir "..\priv"
+echo Compiling NIF sources...
+for %%f in (beamjs_nif.c term_convert.c host_functions.c module_loader.c) do (
+    echo   %%f
+    %CC% /c %CFLAGS% %%f
+    if !ERRORLEVEL! neq 0 goto :fail
+)
+
 echo Linking...
-link /DLL /nologo /OUT:..\priv\beamjs_nif.dll beamjs_nif.obj term_convert.obj host_functions.obj module_loader.obj quickjs.obj cutils.obj libbf.obj libregexp.obj libunicode.obj
+link /DLL /nologo /OUT:..\priv\beamjs_nif.dll ^
+    beamjs_nif.obj term_convert.obj host_functions.obj module_loader.obj ^
+    quickjs.obj cutils.obj libbf.obj libregexp.obj libunicode.obj
 if %ERRORLEVEL% neq 0 goto :fail
 
-REM Clean up obj files
 del /Q *.obj 2>nul
 
 echo NIF built successfully: ..\priv\beamjs_nif.dll
