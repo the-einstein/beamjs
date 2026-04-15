@@ -69,7 +69,7 @@ beamjs new myapp
 beamjs shell
 ```
 
-> **Note:** The npm package currently ships a Linux x64 binary. macOS and Windows/WSL support coming soon via platform-specific packages.
+> **Supported platforms:** Linux x64, macOS x64 (Intel), macOS arm64 (Apple Silicon). On `npm install`, the correct binary is automatically downloaded for your platform.
 
 ### From source
 
@@ -434,7 +434,7 @@ Processes cannot share JS objects. `spawn(fn)` serializes the function via `fn.t
 - **28 passing Elixir tests** + **4 JS fixture tests** (12 subtests)
 
 ### Planned
-- Cross-platform npm packages (macOS arm64/x64, Windows via WSL)
+- Windows native support
 - ES module imports for user files (`import`/`export`)
 - Full TypeScript compiler (via QuickJS-hosted tsc)
 - Distribution (cross-node messaging)

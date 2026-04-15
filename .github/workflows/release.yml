@@ -1,0 +1,127 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+            artifact: beamjs-linux-x64.tar.gz
+          - os: macos-14
+            target: darwin-arm64
+            artifact: beamjs-darwin-arm64.tar.gz
+          - os: macos-13
+            target: darwin-x64
+            artifact: beamjs-darwin-x64.tar.gz
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: '26'
+          elixir-version: '1.16'
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Build NIF
+        run: |
+          cd apps/beamjs_nif/c_src
+          make
+
+      - name: Build release
+        env:
+          MIX_ENV: prod
+        run: mix release beamjs --overwrite
+
+      - name: Verify release
+        run: |
+          _build/prod/rel/beamjs/bin/beamjs eval 'BeamjsCli.Commands.Version.run()'
+
+      - name: Package release
+        run: |
+          cp _build/prod/beamjs-*.tar.gz ${{ matrix.artifact }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: List artifacts
+        run: find artifacts/ -type f
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/linux-x64/beamjs-linux-x64.tar.gz
+            artifacts/darwin-arm64/beamjs-darwin-arm64.tar.gz
+            artifacts/darwin-x64/beamjs-darwin-x64.tar.gz
+
+  publish-npm:
+    name: Publish to npm
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Update npm package version
+        run: |
+          cd npm
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+
+      - name: Download linux-x64 artifact (for bundling)
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-x64
+          path: npm/
+
+      - name: Rename to release.tar.gz (fallback for linux)
+        run: |
+          cp npm/beamjs-linux-x64.tar.gz npm/release.tar.gz
+
+      - name: Publish to npm
+        run: |
+          cd npm
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

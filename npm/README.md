@@ -12,7 +12,7 @@ npm install -g beamjs-runtime
 
 Done. The package bundles the entire BEAM runtime + QuickJS engine as a standalone binary (~5.9MB). Zero external dependencies.
 
-> **Platform support:** Currently ships Linux x64. macOS and ARM64 coming soon.
+> **Supported platforms:** Linux x64, macOS x64 (Intel), macOS arm64 (Apple Silicon). Windows support coming soon via WSL.
 
 ## Usage
 

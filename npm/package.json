@@ -42,10 +42,12 @@
     "README.md"
   ],
   "os": [
-    "linux"
+    "linux",
+    "darwin"
   ],
   "cpu": [
-    "x64"
+    "x64",
+    "arm64"
   ],
   "engines": {
     "node": ">=14"

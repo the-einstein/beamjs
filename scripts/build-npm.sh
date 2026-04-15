@@ -2,7 +2,9 @@
 set -e
 
 # Build BeamJS npm package
-# This script builds the mix release and packages it for npm distribution.
+# Usage: ./scripts/build-npm.sh [--local]
+#   --local: build and bundle for the current platform (for local testing)
+#   Without --local: just build the release (CI handles packaging)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
@@ -16,22 +18,30 @@ echo "==> Building release..."
 cd "$PROJECT_DIR"
 MIX_ENV=prod mix release beamjs --overwrite
 
-echo "==> Copying release tarball to npm package..."
-cp "$PROJECT_DIR/_build/prod/beamjs-0.1.0.tar.gz" "$NPM_DIR/release.tar.gz"
+VERSION=$(grep 'version: "' mix.exs | head -1 | sed 's/.*version: "//;s/".*//')
+echo "==> Release built: v${VERSION}"
 
-echo "==> Making bin executable..."
-chmod +x "$NPM_DIR/bin/beamjs"
+if [ "$1" = "--local" ]; then
+  echo "==> Copying release tarball to npm package..."
+  cp "$PROJECT_DIR/_build/prod/beamjs-${VERSION}.tar.gz" "$NPM_DIR/release.tar.gz"
 
-echo "==> Creating npm tarball..."
-cd "$NPM_DIR"
-npm pack
+  echo "==> Making bin executable..."
+  chmod +x "$NPM_DIR/bin/beamjs"
 
-echo ""
-echo "Done! npm package built:"
-ls -lh "$NPM_DIR"/*.tgz
-echo ""
-echo "To install globally:"
-echo "  npm install -g $NPM_DIR/beamjs-runtime-0.1.0.tgz"
-echo ""
-echo "To publish to npm:"
-echo "  cd $NPM_DIR && npm publish"
+  echo "==> Creating npm tarball..."
+  cd "$NPM_DIR"
+  npm pack
+
+  echo ""
+  echo "Done! npm package built:"
+  ls -lh "$NPM_DIR"/*.tgz
+  echo ""
+  echo "To install globally:"
+  echo "  npm install -g $NPM_DIR/beamjs-runtime-${VERSION}.tgz"
+else
+  echo ""
+  echo "Release built at: _build/prod/beamjs-${VERSION}.tar.gz"
+  echo ""
+  echo "To build the npm package locally, run:"
+  echo "  $0 --local"
+fi

@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: macos-14
+          - os: macos-13
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: '26'
+          elixir-version: '1.16'
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Build NIF
+        run: |
+          cd apps/beamjs_nif/c_src
+          make
+
+      - name: Compile
+        run: mix compile
+
+      - name: Run Elixir tests
+        run: mix test
+
+      - name: Run JS fixture tests
+        run: |
+          mix run -e "
+            tests = [
+              {\"hello.js\", \"Hello from BeamJS!\"},
+              {\"comprehensive.js\", \"All tests passed\"},
+              {\"pattern_match.js\", \"All pattern matching tests passed\"},
+              {\"pipe.js\", \"All pipe tests passed\"}
+            ]
+            Enum.each(tests, fn {file, expected} ->
+              path = Path.join(\"test/fixtures\", file)
+              source = File.read!(path)
+              case BeamjsCore.Process.eval_sync(source, filename: path) do
+                {:ok, _} -> IO.puts(\"PASS: #{file}\")
+                {:error, reason} ->
+                  IO.puts(\"FAIL: #{file} - #{inspect(reason)}\")
+                  System.halt(1)
+              end
+            end)
+          "
