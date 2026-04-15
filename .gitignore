@@ -24,8 +24,12 @@ erl_crash.dump
 
 # NIF compiled objects
 apps/beamjs_nif/c_src/*.o
+apps/beamjs_nif/c_src/*.obj
 apps/beamjs_nif/c_src/quickjs/*.o
+apps/beamjs_nif/c_src/quickjs-ng/*.o
+apps/beamjs_nif/c_src/quickjs-ng/*.obj
 apps/beamjs_nif/priv/*.so
+apps/beamjs_nif/priv/*.dll
 
 # QuickJS vendored source (large, re-downloaded on build)
 # Uncomment if you want to commit the vendored source:
