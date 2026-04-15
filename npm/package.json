@@ -1,0 +1,52 @@
+{
+  "name": "beamjs-runtime",
+  "version": "0.1.0",
+  "description": "JavaScript/TypeScript runtime built on the BEAM VM (Elixir/Erlang) with QuickJS. Erlang/OTP superpowers for JS: lightweight processes, supervision trees, GenServer, pattern matching, pipe operator.",
+  "author": "the-einstein",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/the-einstein/beamjs"
+  },
+  "homepage": "https://github.com/the-einstein/beamjs#readme",
+  "bugs": {
+    "url": "https://github.com/the-einstein/beamjs/issues"
+  },
+  "keywords": [
+    "javascript",
+    "typescript",
+    "runtime",
+    "beam",
+    "erlang",
+    "elixir",
+    "otp",
+    "actor-model",
+    "quickjs",
+    "genserver",
+    "supervisor",
+    "pattern-matching",
+    "pipe-operator",
+    "concurrent",
+    "fault-tolerant"
+  ],
+  "bin": {
+    "beamjs": "bin/beamjs"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "files": [
+    "bin/",
+    "install.js",
+    "release.tar.gz"
+  ],
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "engines": {
+    "node": ">=14"
+  }
+}

@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+
+/**
+ * BeamJS CLI launcher
+ *
+ * This shim finds the bundled BEAM release and exec's it with the
+ * original CLI arguments. The actual runtime is Elixir/Erlang on the
+ * BEAM VM — no Node.js is used beyond this tiny launcher.
+ */
+
+const { execFileSync } = require("child_process");
+const path = require("path");
+const fs = require("fs");
+
+const packageDir = path.resolve(__dirname, "..");
+const releaseDir = path.join(packageDir, "release");
+const releaseBin = path.join(releaseDir, "bin", "beamjs");
+
+if (!fs.existsSync(releaseBin)) {
+  console.error("Error: BeamJS release binary not found.");
+  console.error("Try reinstalling: npm install -g beamjs-runtime");
+  process.exit(1);
+}
+
+// Pass all CLI args to the release binary via BEAMJS_ARGS
+const args = process.argv.slice(2);
+const beamjsArgs = args.map(a => a.includes(" ") ? `"${a}"` : a).join(" ");
+
+try {
+  execFileSync(releaseBin, ["eval", "BeamjsCli.Release.cli()"], {
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      BEAMJS_ARGS: beamjsArgs,
+      RELEASE_DISTRIBUTION: "none",
+    },
+  });
+} catch (e) {
+  // execFileSync throws on non-zero exit — just forward the code
+  process.exit(e.status || 1);
+}
