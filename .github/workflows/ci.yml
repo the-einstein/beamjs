@@ -44,7 +44,7 @@ jobs:
         shell: cmd
         run: |
           cd apps\beamjs_nif\c_src
-          make
+          call build_win.bat
 
       - name: Compile
         run: mix compile
