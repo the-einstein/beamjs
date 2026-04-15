@@ -1,4 +1,5 @@
 #include "term_convert.h"
+#include "quickjs_compat.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -177,7 +178,7 @@ ERL_NIF_TERM js_value_to_erl(ErlNifEnv *env, JSContext *ctx, JSValue val) {
     }
 
     /* Array */
-    if (JS_IsArray(val)) {
+    if (BEAMJS_IsArray(ctx, val)) {
         JSValue length_val = JS_GetPropertyStr(ctx, val, "length");
         int64_t length;
         JS_ToInt64(ctx, &length, length_val);
@@ -255,7 +256,7 @@ ERL_NIF_TERM js_exception_to_erl(ErlNifEnv *env, JSContext *ctx) {
     JSValue exc = JS_GetException(ctx);
     ERL_NIF_TERM reason;
 
-    if (JS_IsError(exc)) {
+    if (BEAMJS_IsError(ctx, exc)) {
         /* Get message and stack */
         JSValue msg_val = JS_GetPropertyStr(ctx, exc, "message");
         JSValue stack_val = JS_GetPropertyStr(ctx, exc, "stack");

@@ -10,7 +10,7 @@ for /f "tokens=*" %%i in ('erl -noshell -eval "io:format(\"~s\", [erlang:system_
 
 set ERTS_INCLUDE=%ERL_ROOT%\erts-%ERTS_VER%\include
 set EI_INCLUDE=%ERL_ROOT%\usr\include
-set QUICKJS_DIR=quickjs
+set QUICKJS_DIR=quickjs-ng
 
 echo Building BeamJS NIF for Windows (clang-cl)...
 echo ERTS_INCLUDE=%ERTS_INCLUDE%

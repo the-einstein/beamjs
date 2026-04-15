@@ -2,7 +2,12 @@
 #define BEAMJS_NIF_H
 
 #include "erl_nif.h"
-#include "quickjs/quickjs.h"
+
+#ifdef _WIN32
+  #include "quickjs-ng/quickjs.h"
+#else
+  #include "quickjs/quickjs.h"
+#endif
 
 /* Context resource wrapping a QuickJS runtime+context */
 typedef struct {

@@ -1,6 +1,6 @@
 # BeamJS NIF Makefile (Linux / macOS)
-# For Windows, use build_win.bat
-# Uses QuickJS-ng v0.14.0
+# Uses original QuickJS (Bellard, 2024-01-13)
+# For Windows, use build_win.bat (which uses QuickJS-ng)
 
 ERL_ROOT = $(shell erl -noshell -eval "io:format(\"~s\", [code:root_dir()]), halt().")
 ERTS_VER = $(shell erl -noshell -eval "io:format(\"~s\", [erlang:system_info(version)]), halt().")
@@ -13,7 +13,8 @@ UNAME_S := $(shell uname -s)
 CC = gcc
 CFLAGS = -O2 -fPIC -Wall -Wno-unused-parameter \
          -I$(ERTS_INCLUDE) -I$(EI_INCLUDE) -I$(QUICKJS_DIR) \
-         -D_GNU_SOURCE -DCONFIG_VERSION=\"0.14.0\"
+         -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-01-13\" \
+         -DCONFIG_BIGNUM
 
 QJS_CFLAGS = $(CFLAGS) -Wno-sign-compare -Wno-missing-field-initializers
 
@@ -25,9 +26,9 @@ endif
 
 OUTPUT = ../priv/beamjs_nif.so
 
-# QuickJS-ng source objects (no cutils.c or libbf.c — they're inlined)
-QUICKJS_OBJS = $(QUICKJS_DIR)/quickjs.o $(QUICKJS_DIR)/dtoa.o \
-               $(QUICKJS_DIR)/libregexp.o $(QUICKJS_DIR)/libunicode.o
+QUICKJS_OBJS = $(QUICKJS_DIR)/quickjs.o $(QUICKJS_DIR)/cutils.o \
+               $(QUICKJS_DIR)/libbf.o $(QUICKJS_DIR)/libregexp.o \
+               $(QUICKJS_DIR)/libunicode.o
 
 NIF_OBJS = beamjs_nif.o term_convert.o host_functions.o module_loader.o
 
