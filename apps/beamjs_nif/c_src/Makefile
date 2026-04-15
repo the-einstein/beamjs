@@ -9,13 +9,23 @@ EI_INCLUDE = $(ERL_ROOT)/usr/include
 
 QUICKJS_DIR = quickjs
 
+# Platform detection
+UNAME_S := $(shell uname -s)
+
 CC = gcc
 CFLAGS = -O2 -fPIC -Wall -Wno-unused-parameter \
          -I$(ERTS_INCLUDE) -I$(EI_INCLUDE) -I$(QUICKJS_DIR) \
          -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-01-13\" \
          -DCONFIG_BIGNUM
 
-LDFLAGS = -shared -lm -lpthread -ldl
+# Platform-specific linker flags
+ifeq ($(UNAME_S),Darwin)
+    LDFLAGS = -dynamiclib -undefined dynamic_lookup -lm -lpthread
+    OUTPUT = ../priv/beamjs_nif.so
+else
+    LDFLAGS = -shared -lm -lpthread -ldl
+    OUTPUT = ../priv/beamjs_nif.so
+endif
 
 # QuickJS source objects
 QUICKJS_OBJS = $(QUICKJS_DIR)/quickjs.o \
@@ -26,8 +36,6 @@ QUICKJS_OBJS = $(QUICKJS_DIR)/quickjs.o \
 
 # NIF source objects
 NIF_OBJS = beamjs_nif.o term_convert.o host_functions.o module_loader.o
-
-OUTPUT = ../priv/beamjs_nif.so
 
 .PHONY: all clean
 
