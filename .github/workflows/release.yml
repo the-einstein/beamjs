@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             target: linux-x64
             artifact: beamjs-linux-x64.tar.gz
           - os: macos-latest
@@ -61,7 +61,7 @@ jobs:
   release:
     name: Create GitHub Release
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -85,7 +85,7 @@ jobs:
   publish-npm:
     name: Publish to npm
     needs: release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
