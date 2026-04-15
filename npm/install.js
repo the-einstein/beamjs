@@ -25,7 +25,6 @@ if (fs.existsSync(releaseBin)) {
 const PLATFORMS = {
   "linux-x64": "beamjs-linux-x64.tar.gz",
   "darwin-arm64": "beamjs-darwin-arm64.tar.gz",
-  "darwin-x64": "beamjs-darwin-x64.tar.gz",
 };
 
 const platformKey = `${process.platform}-${process.arch}`;

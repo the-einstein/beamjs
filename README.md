@@ -69,7 +69,7 @@ beamjs new myapp
 beamjs shell
 ```
 
-> **Supported platforms:** Linux x64, macOS x64 (Intel), macOS arm64 (Apple Silicon). On `npm install`, the correct binary is automatically downloaded for your platform.
+> **Supported platforms:** Linux x64, macOS arm64 (Apple Silicon). On `npm install`, the correct binary is automatically downloaded for your platform.
 
 ### From source
 

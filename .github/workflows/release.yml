@@ -18,12 +18,9 @@ jobs:
           - os: ubuntu-latest
             target: linux-x64
             artifact: beamjs-linux-x64.tar.gz
-          - os: macos-14
+          - os: macos-latest
             target: darwin-arm64
             artifact: beamjs-darwin-arm64.tar.gz
-          - os: macos-13
-            target: darwin-x64
-            artifact: beamjs-darwin-x64.tar.gz
 
     steps:
       - uses: actions/checkout@v4
@@ -84,7 +81,6 @@ jobs:
           files: |
             artifacts/linux-x64/beamjs-linux-x64.tar.gz
             artifacts/darwin-arm64/beamjs-darwin-arm64.tar.gz
-            artifacts/darwin-x64/beamjs-darwin-x64.tar.gz
 
   publish-npm:
     name: Publish to npm
