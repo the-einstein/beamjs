@@ -31,6 +31,11 @@ apps/beamjs_nif/priv/*.so
 # Uncomment if you want to commit the vendored source:
 # apps/beamjs_nif/c_src/quickjs/
 
+# npm build artifacts
+npm/*.tgz
+npm/release.tar.gz
+npm/release/
+
 # Scaffolded test projects
 mytest/
 
