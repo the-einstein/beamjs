@@ -21,6 +21,9 @@ jobs:
           - os: macos-latest
             target: darwin-arm64
             artifact: beamjs-darwin-arm64.tar.gz
+          - os: windows-latest
+            target: win32-x64
+            artifact: beamjs-win32-x64.zip
 
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +37,15 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
-      - name: Build NIF
+      - name: Build NIF (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cd apps/beamjs_nif/c_src
+          make
+
+      - name: Build NIF (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
         run: |
           cd apps/beamjs_nif/c_src
           make
@@ -44,13 +55,29 @@ jobs:
           MIX_ENV: prod
         run: mix release beamjs --overwrite
 
-      - name: Verify release
+      - name: Verify release (Unix)
+        if: runner.os != 'Windows'
         run: |
           _build/prod/rel/beamjs/bin/beamjs eval 'BeamjsCli.Commands.Version.run()'
 
-      - name: Package release
+      - name: Verify release (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          _build\prod\rel\beamjs\bin\beamjs.bat eval "BeamjsCli.Commands.Version.run()"
+
+      - name: Package release (Unix)
+        if: runner.os != 'Windows'
         run: |
           cp _build/prod/beamjs-*.tar.gz ${{ matrix.artifact }}
+
+      - name: Package release (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          cd _build/prod/rel/beamjs
+          7z a -r ../../../../${{ matrix.artifact }} .
+          cd ../../../..
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -81,6 +108,7 @@ jobs:
           files: |
             artifacts/linux-x64/beamjs-linux-x64.tar.gz
             artifacts/darwin-arm64/beamjs-darwin-arm64.tar.gz
+            artifacts/win32-x64/beamjs-win32-x64.zip
 
   publish-npm:
     name: Publish to npm

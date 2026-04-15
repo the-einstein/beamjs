@@ -12,9 +12,10 @@ const { execFileSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
+const isWindows = process.platform === "win32";
 const packageDir = path.resolve(__dirname, "..");
 const releaseDir = path.join(packageDir, "release");
-const releaseBin = path.join(releaseDir, "bin", "beamjs");
+const releaseBin = path.join(releaseDir, "bin", isWindows ? "beamjs.bat" : "beamjs");
 
 if (!fs.existsSync(releaseBin)) {
   console.error("Error: BeamJS release binary not found.");
@@ -26,16 +27,25 @@ if (!fs.existsSync(releaseBin)) {
 const args = process.argv.slice(2);
 const beamjsArgs = args.map(a => a.includes(" ") ? `"${a}"` : a).join(" ");
 
+const env = {
+  ...process.env,
+  BEAMJS_ARGS: beamjsArgs,
+  RELEASE_DISTRIBUTION: "none",
+};
+
 try {
-  execFileSync(releaseBin, ["eval", "BeamjsCli.Release.cli()"], {
-    stdio: "inherit",
-    env: {
-      ...process.env,
-      BEAMJS_ARGS: beamjsArgs,
-      RELEASE_DISTRIBUTION: "none",
-    },
-  });
+  if (isWindows) {
+    // On Windows, use cmd /c to run .bat files
+    execFileSync("cmd", ["/c", releaseBin, "eval", "BeamjsCli.Release.cli()"], {
+      stdio: "inherit",
+      env,
+    });
+  } else {
+    execFileSync(releaseBin, ["eval", "BeamjsCli.Release.cli()"], {
+      stdio: "inherit",
+      env,
+    });
+  }
 } catch (e) {
-  // execFileSync throws on non-zero exit — just forward the code
   process.exit(e.status || 1);
 }

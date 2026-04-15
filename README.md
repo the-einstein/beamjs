@@ -69,7 +69,7 @@ beamjs new myapp
 beamjs shell
 ```
 
-> **Supported platforms:** Linux x64, macOS arm64 (Apple Silicon). On `npm install`, the correct binary is automatically downloaded for your platform.
+> **Supported platforms:** Linux x64, macOS arm64 (Apple Silicon), Windows x64. On `npm install`, the correct binary is automatically downloaded for your platform.
 
 ### From source
 
@@ -434,7 +434,7 @@ Processes cannot share JS objects. `spawn(fn)` serializes the function via `fn.t
 - **28 passing Elixir tests** + **4 JS fixture tests** (12 subtests)
 
 ### Planned
-- Windows native support
+- macOS x64 (Intel) support
 - ES module imports for user files (`import`/`export`)
 - Full TypeScript compiler (via QuickJS-hosted tsc)
 - Distribution (cross-node messaging)

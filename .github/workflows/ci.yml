@@ -15,6 +15,7 @@ jobs:
         include:
           - os: ubuntu-22.04
           - os: macos-latest
+          - os: windows-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +29,15 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
-      - name: Build NIF
+      - name: Build NIF (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cd apps/beamjs_nif/c_src
+          make
+
+      - name: Build NIF (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
         run: |
           cd apps/beamjs_nif/c_src
           make
@@ -39,7 +48,8 @@ jobs:
       - name: Run Elixir tests
         run: mix test
 
-      - name: Run JS fixture tests
+      - name: Run JS fixture tests (Unix)
+        if: runner.os != 'Windows'
         run: |
           mix run -e "
             tests = [
@@ -59,3 +69,9 @@ jobs:
               end
             end)
           "
+
+      - name: Run JS fixture tests (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mix run -e "tests = [{\"hello.js\", nil}, {\"comprehensive.js\", nil}, {\"pattern_match.js\", nil}, {\"pipe.js\", nil}]; Enum.each(tests, fn {file, _} -> path = Path.join(\"test/fixtures\", file); source = File.read!(path); case BeamjsCore.Process.eval_sync(source, filename: path) do {:ok, _} -> IO.puts(\"PASS: \#{file}\"); {:error, reason} -> IO.puts(\"FAIL: \#{file} - \#{inspect(reason)}\"); System.halt(1) end end)"

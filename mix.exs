@@ -34,7 +34,7 @@ defmodule Beamjs.MixProject do
         ],
         steps: [:assemble, :tar],
         include_erts: true,
-        include_executables_for: [:unix],
+        include_executables_for: [:unix, :windows],
         strip_beams: true
       ]
     ]
